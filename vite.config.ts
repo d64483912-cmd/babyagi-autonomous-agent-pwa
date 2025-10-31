@@ -269,3 +269,4 @@ export default defineConfig({
     __PWA_VERSION__: JSON.stringify(process.env.npm_package_version)
   }
 })
+
