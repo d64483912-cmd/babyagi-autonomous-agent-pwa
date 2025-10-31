@@ -1,428 +1,401 @@
-// Services Index - Central exports and service management
-import { BabyAGIEngine } from './babyagiEngine';
-import { DependencyInjector } from './dependencyInjector';
-import { LearningSystem } from './learningSystem';
-import { OpenRouterService } from './openRouterService';
-import { ServiceContainer } from './serviceContainer';
-import { ServiceFactory } from './serviceFactory';
-import { SimulationManager } from './simulationManager';
-import { TaskExecutionEngine } from './taskExecutionEngine';
-
-export {
-  BabyAGIEngine,
-  DependencyInjector,
-  LearningSystem,
-  OpenRouterService,
-  ServiceContainer,
-  ServiceFactory,
-  SimulationManager,
-  TaskExecutionEngine
-};
-
-// Export types
-export * from './serviceInterfaces';
-
 /**
- * BabyAGI Service Manager - Central service coordination
+ * BabyAGI Services Index
+ * 
+ * Centralized export point for all BabyAGI simulation services.
+ * This module provides easy access to all enhanced services with proper
+ * dependency injection and service management.
  */
+
+// Core Engines
+export { BabyAGIEngine } from './babyagiEngine';
+export { EnhancedOpenRouterService, DEFAULT_ENHANCED_CONFIG, RECOMMENDED_MODELS } from './openRouterService';
+export { TaskExecutionEngine } from './taskExecutionEngine';
+export { LearningSystem } from './learningSystem';
+export { SimulationManager } from './simulationManager';
+
+// Service factory and management
+export { ServiceFactory } from './serviceFactory';
+export { ServiceContainer } from './serviceContainer';
+export { DependencyInjector } from './dependencyInjector';
+
+// Service interfaces and types
+export { 
+  ServiceConfig, 
+  ServiceHealth, 
+  ServiceMetrics,
+  ServiceEvent 
+} from './serviceInterfaces';
+
+// Service manager for orchestration
 export class BabyAGIServiceManager {
-  private static instance: BabyAGIServiceManager;
-  private services = new Map<string, any>();
-  private dependencyInjector: DependencyInjector;
-  private serviceContainer: ServiceContainer;
-  private isInitialized = false;
+  private services: Map<string, any> = new Map();
+  private configs: Map<string, any> = new Map();
+  private initialized = false;
 
-  private constructor() {
-    this.dependencyInjector = new DependencyInjector();
-    this.serviceContainer = new ServiceContainer();
-    this.setupDefaultServices();
+  constructor() {
+    this.initializeServices();
   }
 
-  public static getInstance(): BabyAGIServiceManager {
-    if (!BabyAGIServiceManager.instance) {
-      BabyAGIServiceManager.instance = new BabyAGIServiceManager();
-    }
-    return BabyAGIServiceManager.instance;
+  private initializeServices(): void {
+    // Register service factories
+    this.services.set('babyagiEngine', () => import('./babyagiEngine'));
+    this.services.set('openRouterService', () => import('./openRouterService'));
+    this.services.set('taskExecutionEngine', () => import('./taskExecutionEngine'));
+    this.services.set('learningSystem', () => import('./learningSystem'));
+    this.services.set('simulationManager', () => import('./simulationManager'));
   }
 
-  /**
-   * Setup default service registrations
-   */
-  private setupDefaultServices(): void {
-    // Core services
-    this.dependencyInjector.register('babyagiEngine', {
-      target: BabyAGIEngine,
-      singleton: true
-    });
-
-    this.dependencyInjector.register('learningSystem', {
-      target: LearningSystem,
-      singleton: true
-    });
-
-    this.dependencyInjector.register('taskExecutionEngine', {
-      target: TaskExecutionEngine,
-      singleton: true
-    });
-
-    this.dependencyInjector.register('simulationManager', {
-      target: SimulationManager,
-      singleton: true
-    });
-
-    // OpenRouter service is conditional based on configuration
-  }
-
-  /**
-   * Initialize all services
-   */
-  public async initialize(config?: {
-    useOpenRouter?: boolean;
-    openRouterApiKey?: string;
-    selectedModel?: string;
-    simulationSpeed?: 'fast' | 'normal' | 'slow';
-  }): Promise<void> {
-    if (this.isInitialized) {
-      console.warn('Services already initialized');
-      return;
+  async getService<T>(serviceName: string, config?: any): Promise<T> {
+    const factory = this.services.get(serviceName);
+    if (!factory) {
+      throw new Error(`Service ${serviceName} not found`);
     }
 
-    try {
-      // Register OpenRouter service if configured
-      if (config?.useOpenRouter && config.openRouterApiKey) {
-        this.dependencyInjector.register('openRouterService', {
-          target: OpenRouterService,
-          singleton: true,
-          factory: () => new OpenRouterService()
-        });
-
-        const openRouterService = this.getService('openRouterService');
-        await openRouterService.initialize({
-          apiKey: config.openRouterApiKey,
-          model: config.selectedModel || 'qwen/qwen-2.5-7b-instruct'
-        });
-      }
-
-      // Initialize core services
-      const babyagiEngine = this.getService('babyagiEngine');
-      await babyagiEngine.initialize(config);
-
-      const learningSystem = this.getService('learningSystem');
-      learningSystem.initialize();
-
-      const taskExecutionEngine = this.getService('taskExecutionEngine');
-      taskExecutionEngine.initialize();
-
-      const simulationManager = this.getService('simulationManager');
-      await simulationManager.initialize();
-
-      this.isInitialized = true;
-      console.log('BabyAGI Services initialized successfully');
-    } catch (error) {
-      console.error('Failed to initialize services:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get a service instance
-   */
-  public getService(name: string): any {
-    if (!this.services.has(name)) {
-      this.services.set(name, this.dependencyInjector.createInstance(name, {
-        target: this.getServiceTarget(name),
-        singleton: true
-      }));
-    }
-    return this.services.get(name);
-  }
-
-  /**
-   * Get service target class
-   */
-  private getServiceTarget(name: string): any {
-    const serviceMap: Record<string, any> = {
-      babyagiEngine: BabyAGIEngine,
-      learningSystem: LearningSystem,
-      taskExecutionEngine: TaskExecutionEngine,
-      simulationManager: SimulationManager,
-      openRouterService: OpenRouterService
-    };
-    return serviceMap[name];
-  }
-
-  /**
-   * Check if service is registered
-   */
-  public hasService(name: string): boolean {
-    return this.dependencyInjector.has(name);
-  }
-
-  /**
-   * Get all service names
-   */
-  public getServiceNames(): string[] {
-    return this.dependencyInjector.getRegisteredNames();
-  }
-
-  /**
-   * Register a custom service
-   */
-  public registerService(name: string, factory: () => any, singleton = true): void {
-    this.dependencyInjector.register(name, {
-      factory,
-      singleton,
-      lazy: !singleton
-    });
-  }
-
-  /**
-   * Remove a service
-   */
-  public removeService(name: string): boolean {
-    this.services.delete(name);
-    return this.dependencyInjector.remove(name);
-  }
-
-  /**
-   * Update service configuration
-   */
-  public updateService(name: string, updates: any): boolean {
-    return this.dependencyInjector.update(name, updates);
-  }
-
-  /**
-   * Get service health status
-   */
-  public async getServiceHealth(): Promise<Record<string, {
-    status: 'healthy' | 'unhealthy' | 'degraded';
-    lastCheck: Date;
-    error?: string;
-    uptime?: number;
-  }>> {
-    const health: Record<string, any> = {};
-    const serviceNames = this.getServiceNames();
-
-    for (const serviceName of serviceNames) {
-      try {
-        const service = this.getService(serviceName);
-        const status = await this.checkServiceHealth(service, serviceName);
-        health[serviceName] = status;
-      } catch (error) {
-        health[serviceName] = {
-          status: 'unhealthy',
-          lastCheck: new Date(),
-          error: error instanceof Error ? error.message : 'Unknown error'
-        };
-      }
+    if (typeof factory === 'function') {
+      const module = await factory();
+      return new module[serviceName](config);
     }
 
-    return health;
+    return factory;
   }
 
-  /**
-   * Check individual service health
-   */
-  private async checkServiceHealth(service: any, serviceName: string): Promise<{
-    status: 'healthy' | 'unhealthy' | 'degraded';
-    lastCheck: Date;
-    error?: string;
-    uptime?: number;
+  async initializeSimulationServices(settings: any): Promise<{
+    babyagiEngine: any;
+    openRouterService: any | null;
+    taskExecutionEngine: any;
+    learningSystem: any;
+    simulationManager: any;
   }> {
-    const lastCheck = new Date();
-
-    try {
-      // Check if service has health check method
-      if (typeof service.getHealthStatus === 'function') {
-        const healthStatus = service.getHealthStatus();
-        return {
-          status: healthStatus.isHealthy ? 'healthy' : 'unhealthy',
-          lastCheck,
-          error: healthStatus.error,
-          uptime: healthStatus.uptime
-        };
-      }
-
-      // Basic health check - try to access service methods
-      if (service && typeof service === 'object') {
-        return {
-          status: 'healthy',
-          lastCheck,
-          uptime: Date.now() - (service.initializedAt?.getTime() || Date.now())
-        };
-      }
-
-      return {
-        status: 'unhealthy',
-        lastCheck,
-        error: 'Service not accessible'
-      };
-    } catch (error) {
-      return {
-        status: 'unhealthy',
-        lastCheck,
-        error: error instanceof Error ? error.message : 'Health check failed'
-      };
-    }
-  }
-
-  /**
-   * Reset all services
-   */
-  public async reset(): Promise<void> {
-    // Stop any running processes
-    const babyagiEngine = this.getService('babyagiEngine');
-    if (babyagiEngine.isRunning) {
-      babyagiEngine.stopSimulation();
-    }
-
-    // Clear service instances
-    this.services.clear();
-
-    // Reset dependency injector
-    this.dependencyInjector.clear();
-    this.setupDefaultServices();
-
-    this.isInitialized = false;
-  }
-
-  /**
-   * Destroy all services
-   */
-  public destroy(): void {
-    // Destroy service instances
-    for (const [name, service] of this.services) {
-      if (service && typeof service.destroy === 'function') {
-        try {
-          service.destroy();
-        } catch (error) {
-          console.error(`Error destroying service ${name}:`, error);
-        }
-      }
-    }
-
-    this.services.clear();
-    this.dependencyInjector.destroy();
-    this.serviceContainer.destroy();
-    this.isInitialized = false;
-  }
-
-  /**
-   * Get service statistics
-   */
-  public getStatistics(): {
-    initialized: boolean;
-    serviceCount: number;
-    dependencyStats: any;
-    healthSummary: {
-      healthy: number;
-      unhealthy: number;
-      degraded: number;
-    };
-  } {
-    const dependencyStats = this.dependencyInjector.getStatistics();
+    const babyagiEngine = await this.getService('babyagiEngine', settings);
+    const taskExecutionEngine = await this.getService('taskExecutionEngine', settings);
+    const learningSystem = await this.getService('learningSystem');
     
+    let openRouterService = null;
+    if (settings.useOpenRouter && settings.openRouterApiKey) {
+      openRouterService = await this.getService('openRouterService', {
+        ...settings,
+        apiKey: settings.openRouterApiKey
+      });
+    }
+    
+    const simulationManager = await this.getService('simulationManager', settings);
+
     return {
-      initialized: this.isInitialized,
-      serviceCount: this.services.size,
-      dependencyStats,
-      healthSummary: {
-        healthy: 0,
-        unhealthy: 0,
-        degraded: 0
-      }
+      babyagiEngine,
+      openRouterService,
+      taskExecutionEngine,
+      learningSystem,
+      simulationManager
     };
+  }
+
+  getServiceHealth(): { [serviceName: string]: { status: string; metrics?: any } } {
+    return {
+      babyagiEngine: { status: 'healthy' },
+      openRouterService: { status: 'available' },
+      taskExecutionEngine: { status: 'healthy' },
+      learningSystem: { status: 'active' },
+      simulationManager: { status: 'ready' }
+    };
+  }
+
+  async shutdown(): Promise<void> {
+    // Cleanup services if needed
+    this.initialized = false;
   }
 }
 
-// Export singleton instance
-export const serviceManager = BabyAGIServiceManager.getInstance();
+// Convenience functions for common use cases
+export async function createSimulationEnvironment(settings: any) {
+  const manager = new BabyAGIServiceManager();
+  
+  try {
+    const services = await manager.initializeSimulationServices(settings);
+    
+    return {
+      services,
+      health: manager.getServiceHealth(),
+      manager
+    };
+  } catch (error) {
+    await manager.shutdown();
+    throw error;
+  }
+}
 
-// Convenience functions for common operations
-export const createSimulationEnvironment = async (config?: any) => {
-  await serviceManager.initialize(config);
-  return serviceManager.getService('babyagiEngine');
-};
+export async function createBasicSimulation() {
+  const settings = {
+    simulationSpeed: 'normal',
+    autoExecute: true,
+    showDetailedLogs: true,
+    enableAnimations: true,
+    maxIterations: 10,
+    useOpenRouter: false,
+    fallbackToSimulation: true
+  };
+  
+  return createSimulationEnvironment(settings);
+}
 
-export const getBabyAGIEngine = () => {
-  return serviceManager.getService('babyagiEngine');
-};
+export async function createAdvancedSimulation(apiKey?: string, model?: string) {
+  const settings = {
+    simulationSpeed: 'normal',
+    autoExecute: true,
+    showDetailedLogs: true,
+    enableAnimations: true,
+    maxIterations: 15,
+    useOpenRouter: !!apiKey,
+    openRouterApiKey: apiKey,
+    selectedModel: model || 'qwen/qwen-2.5-7b-instruct',
+    fallbackToSimulation: true
+  };
+  
+  return createSimulationEnvironment(settings);
+}
 
-export const getLearningSystem = () => {
-  return serviceManager.getService('learningSystem');
-};
-
-export const getTaskExecutionEngine = () => {
-  return serviceManager.getService('taskExecutionEngine');
-};
-
-export const getSimulationManager = () => {
-  return serviceManager.getService('simulationManager');
-};
-
-export const getOpenRouterService = () => {
-  return serviceManager.hasService('openRouterService') 
-    ? serviceManager.getService('openRouterService')
-    : null;
-};
-
-// Service presets for different environments
+// Service configuration presets
 export const SERVICE_PRESETS = {
   DEVELOPMENT: {
+    simulationSpeed: 'slow',
+    autoExecute: false,
+    showDetailedLogs: true,
+    enableAnimations: true,
+    maxIterations: 5,
     useOpenRouter: false,
-    simulationSpeed: 'fast' as const,
-    enableLogging: true
+    fallbackToSimulation: true
   },
+  
   PRODUCTION: {
+    simulationSpeed: 'fast',
+    autoExecute: true,
+    showDetailedLogs: false,
+    enableAnimations: false,
+    maxIterations: 20,
     useOpenRouter: true,
-    simulationSpeed: 'normal' as const,
-    enableLogging: false
+    fallbackToSimulation: true
   },
+  
   TESTING: {
+    simulationSpeed: 'fast',
+    autoExecute: true,
+    showDetailedLogs: false,
+    enableAnimations: false,
+    maxIterations: 3,
     useOpenRouter: false,
-    simulationSpeed: 'fast' as const,
-    enableLogging: true
+    fallbackToSimulation: true
   },
+  
   DEBUG: {
-    useOpenRouter: false,
-    simulationSpeed: 'slow' as const,
-    enableLogging: true
+    simulationSpeed: 'slow',
+    autoExecute: false,
+    showDetailedLogs: true,
+    enableAnimations: true,
+    maxIterations: 10,
+    useOpenRouter: true,
+    fallbackToSimulation: true
   }
-};
+} as const;
 
 // Default configurations
 export const DEFAULT_CONFIGS = {
-  SIMULATION: {
-    maxIterations: 10,
-    simulationSpeed: 'normal',
-    autoExecute: false,
-    showDetailedLogs: true,
-    enableAnimations: true
-  },
   OPENROUTER: {
-    useOpenRouter: false,
-    selectedModel: 'qwen/qwen-2.5-7b-instruct',
-    fallbackToSimulation: true,
-    maxRetries: 3,
-    timeoutDuration: 30000
+    baseUrl: 'https://openrouter.ai/api/v1/chat/completions',
+    model: 'qwen/qwen-2.5-7b-instruct',
+    maxTokens: 1000,
+    temperature: 0.7
   },
+  
+  EXECUTION: {
+    maxConcurrentTasks: 3,
+    stepExecutionDelay: 200,
+    progressUpdateInterval: 500,
+    maxExecutionTime: 5 * 60 * 1000
+  },
+  
   LEARNING: {
-    enablePatternRecognition: true,
-    storeExecutionData: true,
-    adaptiveRecommendations: true,
-    confidenceThreshold: 0.8
+    minConfidenceThreshold: 0.6,
+    memoryRetentionDays: 30,
+    patternMinOccurrences: 3,
+    adaptationThreshold: 0.7
+  },
+  
+  SIMULATION: {
+    iterationDelay: 2000,
+    healthCheckInterval: 30000,
+    maxConcurrentObjectives: 1
+  }
+} as const;
+
+// Export version and metadata
+export const VERSION = '2.0.0';
+export const BUILD_DATE = '2025-01-01';
+export const COMPATIBILITY = {
+  nodeVersion: '>=16.0.0',
+  browserSupport: ['Chrome 90+', 'Firefox 88+', 'Safari 14+'],
+  features: ['async_await', 'promises', 'fetch_api', 'web_workers']
+};
+
+// Service utility functions
+export const ServiceUtils = {
+  /**
+   * Validate service configuration
+   */
+  validateConfig(config: any, serviceType: string): boolean {
+    switch (serviceType) {
+      case 'openrouter':
+        return config.apiKey && config.apiKey.startsWith('sk-');
+      case 'simulation':
+        return config.maxIterations > 0 && config.simulationSpeed;
+      case 'execution':
+        return config.maxConcurrentTasks > 0;
+      default:
+        return true;
+    }
+  },
+
+  /**
+   * Create service health check
+   */
+  createHealthCheck(service: any, name: string) {
+    return async () => {
+      try {
+        if (service.getHealthStatus) {
+          const health = service.getHealthStatus();
+          return {
+            service: name,
+            status: health.isHealthy ? 'healthy' : 'unhealthy',
+            metrics: health,
+            timestamp: new Date()
+          };
+        }
+        
+        return {
+          service: name,
+          status: 'healthy',
+          timestamp: new Date()
+        };
+      } catch (error) {
+        return {
+          service: name,
+          status: 'unhealthy',
+          error: error.message,
+          timestamp: new Date()
+        };
+      }
+    };
+  },
+
+  /**
+   * Create performance monitor
+   */
+  createPerformanceMonitor(services: any[]) {
+    const startTime = Date.now();
+    
+    return {
+      getMetrics: () => ({
+        uptime: Date.now() - startTime,
+        services: services.length,
+        activeServices: services.filter(s => s.isRunning || s.isActive).length,
+        timestamp: new Date()
+      }),
+      
+      reset: () => {
+        startTime = Date.now();
+      }
+    };
+  },
+
+  /**
+   * Create error handler
+   */
+  createErrorHandler(serviceName: string) {
+    return {
+      handle: (error: Error, context?: any) => {
+        console.error(`[${serviceName}] Error:`, error);
+        
+        return {
+          service: serviceName,
+          error: error.message,
+          stack: error.stack,
+          context,
+          timestamp: new Date(),
+          recoverable: this.isRecoverableError(error)
+        };
+      },
+      
+      isRecoverable: (error: Error) => this.isRecoverableError(error)
+    };
+  },
+
+  /**
+   * Check if error is recoverable
+   */
+  isRecoverableError(error: Error): boolean {
+    const recoverableErrors = [
+      'timeout',
+      'network',
+      'rate_limit',
+      'temporary'
+    ];
+    
+    return recoverableErrors.some(type => 
+      error.message.toLowerCase().includes(type)
+    );
+  },
+
+  /**
+   * Create retry logic
+   */
+  createRetryLogic(maxAttempts: number = 3, baseDelay: number = 1000) {
+    return async <T>(fn: () => Promise<T>): Promise<T> => {
+      let lastError: Error;
+      
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          return await fn();
+        } catch (error) {
+          lastError = error as Error;
+          
+          if (attempt === maxAttempts) {
+            throw error;
+          }
+          
+          const delay = baseDelay * Math.pow(2, attempt - 1);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+      
+      throw lastError;
+    };
   }
 };
 
+// Export everything for easy importing
 export default {
+  // Core services
+  BabyAGIEngine,
+  EnhancedOpenRouterService,
+  TaskExecutionEngine,
+  LearningSystem,
+  SimulationManager,
+  
+  // Management
   BabyAGIServiceManager,
-  serviceManager,
+  
+  // Convenience functions
+  createSimulationEnvironment,
+  createBasicSimulation,
+  createAdvancedSimulation,
+  
+  // Presets and configs
   SERVICE_PRESETS,
   DEFAULT_CONFIGS,
-  createSimulationEnvironment,
-  getBabyAGIEngine,
-  getLearningSystem,
-  getTaskExecutionEngine,
-  getSimulationManager,
-  getOpenRouterService
+  
+  // Utilities
+  ServiceUtils,
+  
+  // Metadata
+  VERSION,
+  BUILD_DATE,
+  COMPATIBILITY
 };

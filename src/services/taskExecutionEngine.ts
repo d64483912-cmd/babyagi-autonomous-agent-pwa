@@ -676,7 +676,7 @@ export class TaskExecutionEngine {
     return {
       cpu: task.complexity / 10,
       memory: Math.min(1, task.complexity / 8),
-      network: task.title.includes('research') || task.title.includes('api') ? 0.6 : 0.2,
+      network: title.includes('research') || title.includes('api') ? 0.6 : 0.2,
       storage: 0.1
     };
   }
