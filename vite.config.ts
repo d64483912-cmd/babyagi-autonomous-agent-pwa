@@ -72,6 +72,33 @@ export default defineConfig({
                 statuses: [0, 200]
               }
             }
+          },
+          {
+            // Font caching
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+              }
+            }
+          },
+          {
+            // Images caching
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|avif)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'image-cache',
+              expiration: {
+                maxEntries: 60,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
           }
         ]
       },
@@ -99,6 +126,22 @@ export default defineConfig({
         lang: 'en',
         dir: 'ltr',
         prefer_related_applications: false,
+        screenshots: [
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            form_factor: 'narrow',
+            label: 'BabyAGI interface'
+          },
+          {
+            src: 'pwa-256x256.png',
+            sizes: '256x256',
+            type: 'image/png',
+            form_factor: 'wide',
+            label: 'BabyAGI desktop view'
+          }
+        ],
         icons: [
           {
             src: 'favicon.ico',
@@ -108,6 +151,11 @@ export default defineConfig({
           {
             src: 'pwa-96x96.png',
             sizes: '96x96',
+            type: 'image/png'
+          },
+          {
+            src: 'pwa-144x144.png',
+            sizes: '144x144',
             type: 'image/png'
           },
           {
@@ -136,6 +184,12 @@ export default defineConfig({
             sizes: '180x180',
             type: 'image/png',
             purpose: 'any'
+          },
+          {
+            src: 'masked-icon.svg',
+            sizes: 'any',
+            type: 'image/svg+xml',
+            purpose: 'any maskable'
           }
         ],
         shortcuts: [
@@ -156,17 +210,44 @@ export default defineConfig({
             icons: [
               { src: 'pwa-192x192.png', sizes: '192x192' }
             ]
+          },
+          {
+            name: 'Agent Status',
+            short_name: 'Status',
+            description: 'Check agent health and activity',
+            url: '/?tab=status',
+            icons: [
+              { src: 'pwa-192x192.png', sizes: '192x192' }
+            ]
+          },
+          {
+            name: 'Task Results',
+            short_name: 'Results',
+            description: 'View completed task results',
+            url: '/?tab=results',
+            icons: [
+              { src: 'pwa-192x192.png', sizes: '192x192' }
+            ]
           }
-        ]
+        ],
+        related_applications: [],
+        scope_extensions: []
       },
+      // Inject Web Vitals for performance monitoring
       injectRegister: 'auto',
+      // Enable dev options for development
       devOptions: {
         enabled: true,
         type: 'module'
       },
+      // Enable PWA install prompt
       strategies: 'injectManifest',
       srcDir: 'src',
-      filename: 'sw.ts'
+      filename: 'sw.ts',
+      // Custom service worker configuration
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}']
+      }
     })
   ],
   resolve: {
