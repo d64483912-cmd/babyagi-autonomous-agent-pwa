@@ -1,595 +1,402 @@
 import { create } from 'zustand';
-import { subscribeWithSelector } from 'zustand/middleware';
+import { persist, subscribeWithSelector } from 'zustand/middleware';
+import { Objective, Task } from '../types/babyagi';
 import { immer } from 'zustand/middleware/immer';
-import { persist } from 'zustand/middleware';
-import { devtools } from 'zustand/middleware';
-import type { Objective, Task } from '../types';
-import type { LearningSystem } from '../services/learningSystem';
 
-export interface ObjectivesState {
-  objectives: Record<string, Objective>;
+// Types for objectives store state
+interface ObjectivesState {
+  objectives: Objective[];
+  currentObjective: Objective | null;
   selectedObjectiveId: string | null;
-  filteredObjectives: Objective[];
-  objectiveFilters: {
-    status: 'all' | 'active' | 'completed' | 'failed';
-    priority: 'all' | 'high' | 'medium' | 'low';
-    category: string | null;
-  };
-  learningSystem: LearningSystem | null;
+  objectiveHistory: Objective[];
+  objectivesByStatus: Record<string, Objective[]>;
+  isLoading: boolean;
+  error: string | null;
 }
 
-export interface ObjectivesActions {
-  // Objective CRUD operations
-  addObjective: (objective: Omit<Objective, 'id' | 'createdAt' | 'updatedAt'>) => string;
-  updateObjective: (id: string, updates: Partial<Objective>) => void;
+// Types for objectives store actions
+interface ObjectivesActions {
+  // CRUD operations
+  addObjective: (objective: Omit<Objective, 'id' | 'createdAt'>) => void;
+  updateObjective: (id: string, updates: Partial<Objective>) => Promise<void>;
   deleteObjective: (id: string) => void;
-  getObjective: (id: string) => Objective | null;
+  
+  // Selection and navigation
+  selectObjective: (id: string | null) => void;
+  setCurrentObjective: (objective: Objective | null) => void;
   
   // Status management
-  updateObjectiveStatus: (id: string, status: Objective['status']) => void;
-  markObjectiveComplete: (id: string, results?: any) => void;
-  markObjectiveFailed: (id: string, error?: string) => void;
+  markObjectiveCompleted: (id: string, results?: string) => Promise<void>;
+  markObjectiveFailed: (id: string, error: string) => Promise<void>;
+  resetObjectiveStatus: (id: string) => void;
   
   // Task management
-  addTaskToObjective: (objectiveId: string, task: Omit<Task, 'id' | 'objectiveId' | 'createdAt'>) => string;
-  updateTask: (objectiveId: string, taskId: string, updates: Partial<Task>) => void;
+  addTaskToObjective: (objectiveId: string, task: Omit<Task, 'id' | 'createdAt' | 'attempts'>) => void;
+  updateObjectiveTask: (objectiveId: string, taskId: string, updates: Partial<Task>) => void;
   removeTaskFromObjective: (objectiveId: string, taskId: string) => void;
-  completeTask: (objectiveId: string, taskId: string, results?: any) => void;
   
-  // Filtering and selection
-  setSelectedObjective: (id: string | null) => void;
-  setObjectiveFilters: (filters: Partial<ObjectivesState['objectiveFilters']>) => void;
-  clearObjectiveFilters: () => void;
+  // Utility actions
+  clearError: () => void;
+  setLoading: (isLoading: boolean) => void;
+  reorderObjectives: (fromIndex: number, toIndex: number) => void;
   
-  // Learning integration
-  setLearningSystem: (learningSystem: LearningSystem) => void;
-  applyLearningInsights: (objectiveId: string) => Promise<void>;
-  
-  // Analytics and insights
-  getObjectiveProgress: (id: string) => number;
-  getObjectiveMetrics: (id: string) => {
-    totalTasks: number;
-    completedTasks: number;
-    failedTasks: number;
-    progress: number;
-    estimatedCompletion?: Date;
-    actualCompletion?: Date;
-  };
-  
-  // Bulk operations
-  bulkUpdateObjectives: (ids: string[], updates: Partial<Objective>) => void;
-  bulkDeleteObjectives: (ids: string[]) => void;
-  duplicateObjective: (id: string) => string | null;
-  
-  // Import/Export
-  exportObjectives: () => string;
-  importObjectives: (data: string) => { success: number; failed: number; errors: string[] };
-  
-  // Cleanup
-  clearCompletedObjectives: () => void;
-  clearAllObjectives: () => void;
+  // Computed getters
+  getObjectiveById: (id: string) => Objective | undefined;
+  getObjectivesByStatus: (status: Objective['status']) => Objective[];
+  getObjectivesByComplexity: (complexity: number) => Objective[];
+  getCompletedObjectivesCount: () => number;
+  getActiveObjectivesCount: () => number;
+  getAverageCompletionTime: () => number;
 }
 
-export type ObjectivesStore = ObjectivesState & ObjectivesActions;
+// Combined store type
+type ObjectivesStore = ObjectivesState & ObjectivesActions;
 
-export const createObjectivesStore = (initialData?: Partial<ObjectivesState>) =>
-  create<ObjectivesStore>()(
-    subscribeWithSelector(
-      persist(
-        immer((set, get) => ({
-          // Initial state
-          objectives: {},
-          selectedObjectiveId: null,
-          filteredObjectives: [],
-          objectiveFilters: {
-            status: 'all',
-            priority: 'all',
-            category: null,
-          },
-          learningSystem: null,
-          ...initialData,
+// Validation schema
+const validateObjective = (objective: Omit<Objective, 'id' | 'createdAt'>): boolean => {
+  if (!objective.title?.trim()) return false;
+  if (!objective.description?.trim()) return false;
+  if (objective.complexity < 1 || objective.complexity > 10) return false;
+  return true;
+};
 
-          // Objective CRUD operations
-          addObjective: (objectiveData) => {
-            const id = `obj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            const now = new Date().toISOString();
-            
-            set((state) => {
-              state.objectives[id] = {
-                id,
-                ...objectiveData,
-                status: 'active',
-                progress: 0,
-                tasks: [],
-                createdAt: now,
-                updatedAt: now,
-              };
-            });
-            
-            return id;
-          },
-
-          updateObjective: (id, updates) => {
-            set((state) => {
-              if (state.objectives[id]) {
-                Object.assign(state.objectives[id], {
-                  ...updates,
-                  updatedAt: new Date().toISOString(),
-                });
-              }
-            });
-          },
-
-          deleteObjective: (id) => {
-            set((state) => {
-              delete state.objectives[id];
-              if (state.selectedObjectiveId === id) {
-                state.selectedObjectiveId = null;
-              }
-            });
-          },
-
-          getObjective: (id) => {
-            return get().objectives[id] || null;
-          },
-
-          // Status management
-          updateObjectiveStatus: (id, status) => {
-            set((state) => {
-              if (state.objectives[id]) {
-                state.objectives[id].status = status;
-                state.objectives[id].updatedAt = new Date().toISOString();
-              }
-            });
-          },
-
-          markObjectiveComplete: (id, results) => {
-            set((state) => {
-              if (state.objectives[id]) {
-                state.objectives[id].status = 'completed';
-                state.objectives[id].progress = 100;
-                state.objectives[id].results = results;
-                state.objectives[id].completedAt = new Date().toISOString();
-                state.objectives[id].updatedAt = new Date().toISOString();
-              }
-            });
-          },
-
-          markObjectiveFailed: (id, error) => {
-            set((state) => {
-              if (state.objectives[id]) {
-                state.objectives[id].status = 'failed';
-                state.objectives[id].error = error;
-                state.objectives[id].updatedAt = new Date().toISOString();
-              }
-            });
-          },
-
-          // Task management
-          addTaskToObjective: (objectiveId, taskData) => {
-            const taskId = `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            const now = new Date().toISOString();
-            
-            set((state) => {
-              if (state.objectives[objectiveId]) {
-                const newTask: Task = {
-                  id: taskId,
-                  objectiveId,
-                  ...taskData,
-                  status: 'pending',
-                  progress: 0,
-                  createdAt: now,
-                  updatedAt: now,
-                };
-                
-                state.objectives[objectiveId].tasks.push(newTask);
-                state.objectives[objectiveId].updatedAt = now;
-              }
-            });
-            
-            return taskId;
-          },
-
-          updateTask: (objectiveId, taskId, updates) => {
-            set((state) => {
-              const objective = state.objectives[objectiveId];
-              if (objective) {
-                const taskIndex = objective.tasks.findIndex(task => task.id === taskId);
-                if (taskIndex !== -1) {
-                  Object.assign(objective.tasks[taskIndex], {
-                    ...updates,
-                    updatedAt: new Date().toISOString(),
-                  });
-                  objective.updatedAt = new Date().toISOString();
-                }
-              }
-            });
-          },
-
-          removeTaskFromObjective: (objectiveId, taskId) => {
-            set((state) => {
-              const objective = state.objectives[objectiveId];
-              if (objective) {
-                objective.tasks = objective.tasks.filter(task => task.id !== taskId);
-                objective.updatedAt = new Date().toISOString();
-              }
-            });
-          },
-
-          completeTask: (objectiveId, taskId, results) => {
-            set((state) => {
-              const objective = state.objectives[objectiveId];
-              if (objective) {
-                const task = objective.tasks.find(task => task.id === taskId);
-                if (task) {
-                  task.status = 'completed';
-                  task.progress = 100;
-                  task.results = results;
-                  task.completedAt = new Date().toISOString();
-                  task.updatedAt = new Date().toISOString();
-                  
-                  // Update objective progress
-                  const totalTasks = objective.tasks.length;
-                  const completedTasks = objective.tasks.filter(t => t.status === 'completed').length;
-                  objective.progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-                  
-                  if (completedTasks === totalTasks && totalTasks > 0) {
-                    objective.status = 'completed';
-                    objective.completedAt = new Date().toISOString();
-                  }
-                  
-                  objective.updatedAt = new Date().toISOString();
-                }
-              }
-            });
-          },
-
-          // Filtering and selection
-          setSelectedObjective: (id) => {
-            set((state) => {
-              state.selectedObjectiveId = id;
-            });
-          },
-
-          setObjectiveFilters: (filters) => {
-            set((state) => {
-              Object.assign(state.objectiveFilters, filters);
-            });
-          },
-
-          clearObjectiveFilters: () => {
-            set((state) => {
-              state.objectiveFilters = {
-                status: 'all',
-                priority: 'all',
-                category: null,
-              };
-            });
-          },
-
-          // Learning integration
-          setLearningSystem: (learningSystem) => {
-            set((state) => {
-              state.learningSystem = learningSystem;
-            });
-          },
-
-          applyLearningInsights: async (objectiveId) => {
-            const { learningSystem, getObjective } = get();
-            if (!learningSystem) return;
-            
-            const objective = getObjective(objectiveId);
-            if (!objective) return;
-            
-            try {
-              // This would integrate with the learning system
-              // to provide insights and recommendations for the objective
-              console.log('Applying learning insights for objective:', objectiveId);
-            } catch (error) {
-              console.error('Error applying learning insights:', error);
-            }
-          },
-
-          // Analytics and insights
-          getObjectiveProgress: (id) => {
-            const objective = get().objectives[id];
-            return objective?.progress || 0;
-          },
-
-          getObjectiveMetrics: (id) => {
-            const objective = get().objectives[id];
-            if (!objective) {
-              return {
-                totalTasks: 0,
-                completedTasks: 0,
-                failedTasks: 0,
-                progress: 0,
-              };
-            }
-            
-            const totalTasks = objective.tasks.length;
-            const completedTasks = objective.tasks.filter(task => task.status === 'completed').length;
-            const failedTasks = objective.tasks.filter(task => task.status === 'failed').length;
-            
-            return {
-              totalTasks,
-              completedTasks,
-              failedTasks,
-              progress: objective.progress,
-              estimatedCompletion: undefined, // Would calculate based on current progress
-              actualCompletion: objective.completedAt ? new Date(objective.completedAt) : undefined,
-            };
-          },
-
-          // Bulk operations
-          bulkUpdateObjectives: (ids, updates) => {
-            set((state) => {
-              ids.forEach(id => {
-                if (state.objectives[id]) {
-                  Object.assign(state.objectives[id], {
-                    ...updates,
-                    updatedAt: new Date().toISOString(),
-                  });
-                }
-              });
-            });
-          },
-
-          bulkDeleteObjectives: (ids) => {
-            set((state) => {
-              ids.forEach(id => {
-                delete state.objectives[id];
-              });
-              
-              if (state.selectedObjectiveId && ids.includes(state.selectedObjectiveId)) {
-                state.selectedObjectiveId = null;
-              }
-            });
-          },
-
-          duplicateObjective: (id) => {
-            const original = get().objectives[id];
-            if (!original) return null;
-            
-            const newId = `obj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            const now = new Date().toISOString();
-            
-            set((state) => {
-              state.objectives[newId] = {
-                ...original,
-                id: newId,
-                title: `${original.title} (Copy)`,
-                status: 'active',
-                progress: 0,
-                createdAt: now,
-                updatedAt: now,
-                completedAt: undefined,
-                tasks: original.tasks.map(task => ({
-                  ...task,
-                  id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-                  status: 'pending',
-                  progress: 0,
-                  createdAt: now,
-                  updatedAt: now,
-                  completedAt: undefined,
-                })),
-              };
-            });
-            
-            return newId;
-          },
-
-          // Import/Export
-          exportObjectives: () => {
-            const { objectives } = get();
-            return JSON.stringify({
-              type: 'objectives',
-              version: '1.0',
-              exportedAt: new Date().toISOString(),
-              data: Object.values(objectives),
-            }, null, 2);
-          },
-
-          importObjectives: (data) => {
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.type !== 'objectives' || !Array.isArray(parsed.data)) {
-                return { success: 0, failed: 1, errors: ['Invalid file format'] };
-              }
-              
-              let success = 0;
-              const errors: string[] = [];
-              
-              parsed.data.forEach((objectiveData: any) => {
-                try {
-                  const id = `obj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                  const now = new Date().toISOString();
-                  
-                  set((state) => {
-                    state.objectives[id] = {
-                      ...objectiveData,
-                      id,
-                      createdAt: now,
-                      updatedAt: now,
-                    };
-                  });
-                  
-                  success++;
-                } catch (error) {
-                  errors.push(`Failed to import objective: ${error}`);
-                }
-              });
-              
-              return { success, failed: parsed.data.length - success, errors };
-            } catch (error) {
-              return { success: 0, failed: 1, errors: [`Parse error: ${error}`] };
-            }
-          },
-
-          // Cleanup
-          clearCompletedObjectives: () => {
-            set((state) => {
-              Object.keys(state.objectives).forEach(id => {
-                if (state.objectives[id].status === 'completed') {
-                  delete state.objectives[id];
-                }
-              });
-            });
-          },
-
-          clearAllObjectives: () => {
-            set((state) => {
-              state.objectives = {};
-              state.selectedObjectiveId = null;
-            });
-          },
-        })),
-        {
-          name: 'objectives-store',
-          partialize: (state) => ({
-            objectives: state.objectives,
-            objectiveFilters: state.objectiveFilters,
-          }),
-        }
-      ),
-      {
-        name: 'objectives-store',
-      }
-    )
-  );
-
-// Computed selectors
-export const createObjectivesSelectors = (store: ObjectivesStore) => ({
-  // Active objectives
-  activeObjectives: () => {
-    const { objectives } = store.getState();
-    return Object.values(objectives).filter(obj => obj.status === 'active');
+// Default state
+const createDefaultState = (): ObjectivesState => ({
+  objectives: [],
+  currentObjective: null,
+  selectedObjectiveId: null,
+  objectiveHistory: [],
+  objectivesByStatus: {
+    pending: [],
+    'in-progress': [],
+    completed: [],
+    failed: []
   },
-  
-  // Completed objectives
-  completedObjectives: () => {
-    const { objectives } = store.getState();
-    return Object.values(objectives).filter(obj => obj.status === 'completed');
-  },
-  
-  // Failed objectives
-  failedObjectives: () => {
-    const { objectives } = store.getState();
-    return Object.values(objectives).filter(obj => obj.status === 'failed');
-  },
-  
-  // High priority objectives
-  highPriorityObjectives: () => {
-    const { objectives } = store.getState();
-    return Object.values(objectives).filter(obj => obj.priority === 'high');
-  },
-  
-  // Objectives by category
-  objectivesByCategory: (category: string) => {
-    const { objectives } = store.getState();
-    return Object.values(objectives).filter(obj => obj.category === category);
-  },
-  
-  // Recent objectives (created within last 7 days)
-  recentObjectives: () => {
-    const { objectives } = store.getState();
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    return Object.values(objectives)
-      .filter(obj => new Date(obj.createdAt) > sevenDaysAgo)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  },
-  
-  // Objectives with overdue tasks
-  objectivesWithOverdueTasks: () => {
-    const { objectives } = store.getState();
-    const now = new Date();
-    
-    return Object.values(objectives).filter(obj => {
-      return obj.tasks.some(task => {
-        if (!task.dueDate) return false;
-        return new Date(task.dueDate) < now && task.status !== 'completed';
-      });
-    });
-  },
-  
-  // Overall statistics
-  objectivesStats: () => {
-    const { objectives } = store.getState();
-    const allObjectives = Object.values(objectives);
-    
-    return {
-      total: allObjectives.length,
-      active: allObjectives.filter(obj => obj.status === 'active').length,
-      completed: allObjectives.filter(obj => obj.status === 'completed').length,
-      failed: allObjectives.filter(obj => obj.status === 'failed').length,
-      highPriority: allObjectives.filter(obj => obj.priority === 'high').length,
-      averageProgress: allObjectives.length > 0 
-        ? allObjectives.reduce((sum, obj) => sum + obj.progress, 0) / allObjectives.length 
-        : 0,
-    };
-  },
+  isLoading: false,
+  error: null
 });
 
-// Filter and sort utilities
-export const filterObjectives = (
-  objectives: Objective[],
-  filters: ObjectivesState['objectiveFilters']
-): Objective[] => {
-  return objectives.filter(objective => {
-    // Status filter
-    if (filters.status !== 'all') {
-      if (filters.status === 'active' && objective.status !== 'active') return false;
-      if (filters.status === 'completed' && objective.status !== 'completed') return false;
-      if (filters.status === 'failed' && objective.status !== 'failed') return false;
-    }
-    
-    // Priority filter
-    if (filters.priority !== 'all' && objective.priority !== filters.priority) {
-      return false;
-    }
-    
-    // Category filter
-    if (filters.category && objective.category !== filters.category) {
-      return false;
-    }
-    
-    return true;
-  });
-};
+// Store implementation
+export const useObjectivesStore = create<ObjectivesStore>()(
+  persist(
+    immer((set, get) => ({
+      ...createDefaultState(),
+      
+      // CRUD operations
+      addObjective: (objectiveData) => {
+        if (!validateObjective(objectiveData)) {
+          set((state) => {
+            state.error = 'Invalid objective data';
+          });
+          return;
+        }
 
-export const sortObjectives = (
-  objectives: Objective[],
-  sortBy: 'createdAt' | 'updatedAt' | 'priority' | 'progress' | 'title',
-  sortOrder: 'asc' | 'desc' = 'desc'
-): Objective[] => {
-  return [...objectives].sort((a, b) => {
-    let comparison = 0;
-    
-    switch (sortBy) {
-      case 'createdAt':
-      case 'updatedAt':
-        comparison = new Date(a[sortBy]).getTime() - new Date(b[sortBy]).getTime();
-        break;
-      case 'priority':
-        const priorityOrder = { high: 3, medium: 2, low: 1 };
-        comparison = priorityOrder[a.priority] - priorityOrder[b.priority];
-        break;
-      case 'progress':
-        comparison = a.progress - b.progress;
-        break;
-      case 'title':
-        comparison = a.title.localeCompare(b.title);
-        break;
-      default:
-        comparison = 0;
+        const newObjective: Objective = {
+          ...objectiveData,
+          id: crypto.randomUUID(),
+          createdAt: new Date(),
+          subtasks: []
+        };
+
+        set((state) => {
+          state.objectives.unshift(newObjective);
+          state.objectiveHistory.unshift(newObjective);
+          state.currentObjective = state.currentObjective || newObjective;
+          state.selectedObjectiveId = newObjective.id;
+          
+          // Update status grouping
+          state.objectivesByStatus.pending.unshift(newObjective);
+        });
+      },
+
+      updateObjective: async (id, updates) => {
+        set((state) => {
+          state.isLoading = true;
+          state.error = null;
+        });
+
+        try {
+          set((state) => {
+            const objectiveIndex = state.objectives.findIndex(obj => obj.id === id);
+            if (objectiveIndex === -1) {
+              state.error = 'Objective not found';
+              return;
+            }
+
+            const oldObjective = state.objectives[objectiveIndex];
+            const updatedObjective = { ...oldObjective, ...updates };
+            
+            // Update in main objectives array
+            state.objectives[objectiveIndex] = updatedObjective;
+            
+            // Update current objective if it's the one being updated
+            if (state.currentObjective?.id === id) {
+              state.currentObjective = updatedObjective;
+            }
+            
+            // Update status grouping
+            const oldStatus = oldObjective.status;
+            const newStatus = updates.status || oldStatus;
+            
+            if (oldStatus !== newStatus) {
+              // Remove from old status group
+              state.objectivesByStatus[oldStatus] = state.objectivesByStatus[oldStatus]
+                .filter(obj => obj.id !== id);
+              
+              // Add to new status group
+              state.objectivesByStatus[newStatus].unshift(updatedObjective);
+            } else {
+              // Update in same status group
+              state.objectivesByStatus[newStatus] = state.objectivesByStatus[newStatus]
+                .map(obj => obj.id === id ? updatedObjective : obj);
+            }
+          });
+        } catch (error) {
+          set((state) => {
+            state.error = error instanceof Error ? error.message : 'Failed to update objective';
+          });
+        } finally {
+          set((state) => {
+            state.isLoading = false;
+          });
+        }
+      },
+
+      deleteObjective: (id) => {
+        set((state) => {
+          state.objectives = state.objectives.filter(obj => obj.id !== id);
+          state.objectiveHistory = state.objectiveHistory.filter(obj => obj.id !== id);
+          
+          // Remove from status grouping
+          Object.keys(state.objectivesByStatus).forEach(status => {
+            state.objectivesByStatus[status] = state.objectivesByStatus[status]
+              .filter(obj => obj.id !== id);
+          });
+          
+          // Clear current and selected if they reference deleted objective
+          if (state.currentObjective?.id === id) {
+            state.currentObjective = null;
+          }
+          if (state.selectedObjectiveId === id) {
+            state.selectedObjectiveId = null;
+          }
+        });
+      },
+
+      // Selection and navigation
+      selectObjective: (id) => {
+        set((state) => {
+          const objective = id ? state.objectives.find(obj => obj.id === id) || null : null;
+          state.selectedObjectiveId = id;
+          state.currentObjective = objective;
+        });
+      },
+
+      setCurrentObjective: (objective) => {
+        set((state) => {
+          state.currentObjective = objective;
+          state.selectedObjectiveId = objective?.id || null;
+        });
+      },
+
+      // Status management
+      markObjectiveCompleted: async (id, results) => {
+        const completionTime = new Date();
+        
+        set((state) => {
+          state.isLoading = true;
+        });
+
+        try {
+          await get().updateObjective(id, {
+            status: 'completed',
+            completedAt: completionTime,
+            results
+          });
+        } catch (error) {
+          set((state) => {
+            state.error = 'Failed to mark objective as completed';
+          });
+        } finally {
+          set((state) => {
+            state.isLoading = false;
+          });
+        }
+      },
+
+      markObjectiveFailed: async (id, error) => {
+        set((state) => {
+          state.isLoading = true;
+        });
+
+        try {
+          await get().updateObjective(id, {
+            status: 'failed',
+            results: error
+          });
+        } catch (error) {
+          set((state) => {
+            state.error = 'Failed to mark objective as failed';
+          });
+        } finally {
+          set((state) => {
+            state.isLoading = false;
+          });
+        }
+      },
+
+      resetObjectiveStatus: (id) => {
+        get().updateObjective(id, {
+          status: 'pending',
+          completedAt: undefined,
+          results: undefined
+        });
+      },
+
+      // Task management
+      addTaskToObjective: (objectiveId, taskData) => {
+        const objective = get().objectives.find(obj => obj.id === objectiveId);
+        if (!objective) {
+          set((state) => {
+            state.error = 'Objective not found';
+          });
+          return;
+        }
+
+        const newTask: Task = {
+          ...taskData,
+          id: crypto.randomUUID(),
+          createdAt: new Date(),
+          attempts: 0
+        };
+
+        set((state) => {
+          const objIndex = state.objectives.findIndex(obj => obj.id === objectiveId);
+          if (objIndex !== -1) {
+            state.objectives[objIndex].subtasks.push(newTask);
+            
+            // Update current objective if it matches
+            if (state.currentObjective?.id === objectiveId) {
+              state.currentObjective.subtasks.push(newTask);
+            }
+          }
+        });
+      },
+
+      updateObjectiveTask: (objectiveId, taskId, updates) => {
+        set((state) => {
+          const objIndex = state.objectives.findIndex(obj => obj.id === objectiveId);
+          if (objIndex !== -1) {
+            const taskIndex = state.objectives[objIndex].subtasks.findIndex(task => task.id === taskId);
+            if (taskIndex !== -1) {
+              state.objectives[objIndex].subtasks[taskIndex] = {
+                ...state.objectives[objIndex].subtasks[taskIndex],
+                ...updates
+              };
+              
+              // Update current objective if it matches
+              if (state.currentObjective?.id === objectiveId) {
+                const currentTaskIndex = state.currentObjective.subtasks.findIndex(task => task.id === taskId);
+                if (currentTaskIndex !== -1) {
+                  state.currentObjective.subtasks[currentTaskIndex] = {
+                    ...state.currentObjective.subtasks[currentTaskIndex],
+                    ...updates
+                  };
+                }
+              }
+            }
+          }
+        });
+      },
+
+      removeTaskFromObjective: (objectiveId, taskId) => {
+        set((state) => {
+          const objIndex = state.objectives.findIndex(obj => obj.id === objectiveId);
+          if (objIndex !== -1) {
+            state.objectives[objIndex].subtasks = state.objectives[objIndex].subtasks
+              .filter(task => task.id !== taskId);
+              
+            // Update current objective if it matches
+            if (state.currentObjective?.id === objectiveId) {
+              state.currentObjective.subtasks = state.currentObjective.subtasks
+                .filter(task => task.id !== taskId);
+            }
+          }
+        });
+      },
+
+      // Utility actions
+      clearError: () => {
+        set((state) => {
+          state.error = null;
+        });
+      },
+
+      setLoading: (isLoading) => {
+        set((state) => {
+          state.isLoading = isLoading;
+        });
+      },
+
+      reorderObjectives: (fromIndex, toIndex) => {
+        set((state) => {
+          const objectives = [...state.objectives];
+          const [movedObjective] = objectives.splice(fromIndex, 1);
+          objectives.splice(toIndex, 0, movedObjective);
+          state.objectives = objectives;
+        });
+      },
+
+      // Computed getters
+      getObjectiveById: (id) => {
+        return get().objectives.find(obj => obj.id === id);
+      },
+
+      getObjectivesByStatus: (status) => {
+        return get().objectivesByStatus[status] || [];
+      },
+
+      getObjectivesByComplexity: (complexity) => {
+        return get().objectives.filter(obj => obj.complexity === complexity);
+      },
+
+      getCompletedObjectivesCount: () => {
+        return get().objectives.filter(obj => obj.status === 'completed').length;
+      },
+
+      getActiveObjectivesCount: () => {
+        return get().objectives.filter(obj => 
+          obj.status === 'pending' || obj.status === 'in-progress'
+        ).length;
+      },
+
+      getAverageCompletionTime: () => {
+        const completedObjectives = get().objectives.filter(obj => 
+          obj.status === 'completed' && obj.completedAt
+        );
+        
+        if (completedObjectives.length === 0) return 0;
+        
+        const totalTime = completedObjectives.reduce((sum, obj) => {
+          if (obj.completedAt) {
+            const duration = obj.completedAt.getTime() - obj.createdAt.getTime();
+            return sum + duration;
+          }
+          return sum;
+        }, 0);
+        
+        return Math.round(totalTime / completedObjectives.length / (1000 * 60)); // Convert to minutes
+      }
+    })),
+    {
+      name: 'objectives-store',
+      partialize: (state) => ({
+        objectives: state.objectives,
+        objectiveHistory: state.objectiveHistory,
+        currentObjective: state.currentObjective,
+        selectedObjectiveId: state.selectedObjectiveId
+      })
     }
-    
-    return sortOrder === 'asc' ? comparison : -comparison;
-  });
-};
-
-// Default export for easy importing
-export const objectivesStore = createObjectivesStore();
-
-// Export the store creator for testing
-export { createObjectivesStore };
+  ),
+  subscribeWithSelector
+);
