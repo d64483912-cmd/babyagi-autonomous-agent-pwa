@@ -768,6 +768,5 @@ export const useSettingsStore = create<SettingsStore>()(
         settingsVersion: state.settingsVersion
       })
     }
-  ),
-  subscribeWithSelector
+  )
 );

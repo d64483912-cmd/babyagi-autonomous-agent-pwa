@@ -1,0 +1,6 @@
+src/services/simulationManager.ts(861,11): error TS2367: This comparison appears to be unintentional because the types '"strategy" | "timing" | "dependencies" | "priority"' and '"complexity"' have no overlap.
+src/stores/hooks.ts(235,37): error TS2339: Property 'showInfo' does not exist on type 'SettingsStore'.
+src/stores/hooks.ts(249,36): error TS2339: Property 'showSuccess' does not exist on type 'SettingsStore'.
+src/stores/hooks.ts(420,31): error TS2345: Argument of type '{ title: string; description: string; complexity: number; status: "pending"; }' is not assignable to parameter of type 'Omit<Objective, "id" | "createdAt">'.
+  Property 'subtasks' is missing in type '{ title: string; description: string; complexity: number; status: "pending"; }' but required in type 'Omit<Objective, "id" | "createdAt">'.
+src/stores/tasksStore.ts(727,44): error TS2367: This comparison appears to be unintentional because the types '"pending" | "in-progress" | "failed"' and '"completed"' have no overlap.

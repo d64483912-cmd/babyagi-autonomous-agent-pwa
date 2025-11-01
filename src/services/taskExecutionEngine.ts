@@ -521,7 +521,7 @@ export class TaskExecutionEngine {
       .filter(task => 
         task.objectiveId === objectiveId && 
         task.status === 'pending' &&
-        this.areDependenciesSatisfied(task)
+        this.areDependenciesSatisfied(task, tasks)
       )
       .sort((a, b) => {
         // Sort by priority, then by estimated duration (shorter tasks first)
@@ -532,7 +532,7 @@ export class TaskExecutionEngine {
       });
   }
 
-  private areDependenciesSatisfied(task: Task): boolean {
+  private areDependenciesSatisfied(task: Task, tasks: Task[]): boolean {
     return task.dependencies.every(depId => {
       const depTask = tasks.find(t => t.id === depId);
       return depTask?.status === 'completed';
@@ -676,7 +676,7 @@ export class TaskExecutionEngine {
     return {
       cpu: task.complexity / 10,
       memory: Math.min(1, task.complexity / 8),
-      network: title.includes('research') || title.includes('api') ? 0.6 : 0.2,
+      network: task.title.toLowerCase().includes('research') || task.title.toLowerCase().includes('api') ? 0.6 : 0.2,
       storage: 0.1
     };
   }

@@ -1,4 +1,4 @@
-import { ServiceConfig, ServiceHealth } from './serviceInterfaces';
+import type { ServiceHealth } from './serviceInterfaces';
 
 /**
  * Service Factory for creating and managing BabyAGI services

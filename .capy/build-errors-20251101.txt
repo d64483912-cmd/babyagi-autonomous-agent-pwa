@@ -1,0 +1,118 @@
+src/components/offline-page.tsx(2,75): error TS2307: Cannot find module '@/components/ui/card' or its corresponding type declarations.
+src/components/offline-page.tsx(3,24): error TS2307: Cannot find module '@/components/ui/button' or its corresponding type declarations.
+src/components/pwa-install-prompt.tsx(2,24): error TS2307: Cannot find module '@/components/ui/button' or its corresponding type declarations.
+src/components/pwa-install-prompt.tsx(3,75): error TS2307: Cannot find module '@/components/ui/card' or its corresponding type declarations.
+src/components/pwa-status.tsx(2,75): error TS2307: Cannot find module '@/components/ui/card' or its corresponding type declarations.
+src/components/pwa-status.tsx(3,24): error TS2307: Cannot find module '@/components/ui/button' or its corresponding type declarations.
+src/components/pwa-status.tsx(4,24): error TS2307: Cannot find module '@/components/ui/switch' or its corresponding type declarations.
+src/components/pwa-status.tsx(5,23): error TS2307: Cannot find module '@/components/ui/badge' or its corresponding type declarations.
+src/components/pwa-status.tsx(6,41): error TS2307: Cannot find module '@/components/ui/alert' or its corresponding type declarations.
+src/components/pwa-status.tsx(37,11): error TS2430: Interface 'PWAServiceWorkerRegistration' incorrectly extends interface 'ServiceWorkerRegistration'.
+  Types of property 'active' are incompatible.
+    Type 'PWAServiceWorker' is missing the following properties from type 'ServiceWorker': onstatechange, scriptURL, postMessage, addEventListener, and 3 more.
+src/services/babyagiEngine.ts(43,50): error TS2345: Argument of type 'AppSettings | { simulationSpeed: "normal"; autoExecute: true; showDetailedLogs: true; enableAnimations: true; maxIterations: number; useOpenRouter: false; fallbackToSimulation: true; }' is not assignable to parameter of type 'AppSettings'.
+  Property 'selectedModel' is missing in type '{ simulationSpeed: "normal"; autoExecute: true; showDetailedLogs: true; enableAnimations: true; maxIterations: number; useOpenRouter: false; fallbackToSimulation: true; }' but required in type 'AppSettings'.
+src/services/babyagiEngine.ts(150,11): error TS2367: This comparison appears to be unintentional because the types '"in-progress"' and '"completed"' have no overlap.
+src/services/dependencyInjector.ts(604,60): error TS2341: Property 'container' is private and only accessible within class 'DependencyInjector'.
+src/services/dependencyInjector.ts(620,12): error TS2352: Conversion of type '(...args: any[]) => Promise<any>' to type 'T' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  '(...args: any[]) => Promise<any>' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint 'Function'.
+src/services/index.ts(23,3): error TS2305: Module '"./serviceInterfaces"' has no exported member 'ServiceConfig'.
+src/services/index.ts(24,3): error TS1205: Re-exporting a type when 'isolatedModules' is enabled requires using 'export type'.
+src/services/index.ts(25,3): error TS1205: Re-exporting a type when 'isolatedModules' is enabled requires using 'export type'.
+src/services/index.ts(26,3): error TS1205: Re-exporting a type when 'isolatedModules' is enabled requires using 'export type'.
+src/services/index.ts(303,9): error TS2588: Cannot assign to 'startTime' because it is a constant.
+src/services/index.ts(376,3): error TS18004: No value exists in scope for the shorthand property 'BabyAGIEngine'. Either declare one or provide an initializer.
+src/services/index.ts(377,3): error TS18004: No value exists in scope for the shorthand property 'EnhancedOpenRouterService'. Either declare one or provide an initializer.
+src/services/index.ts(378,3): error TS18004: No value exists in scope for the shorthand property 'TaskExecutionEngine'. Either declare one or provide an initializer.
+src/services/index.ts(379,3): error TS18004: No value exists in scope for the shorthand property 'LearningSystem'. Either declare one or provide an initializer.
+src/services/index.ts(380,3): error TS18004: No value exists in scope for the shorthand property 'SimulationManager'. Either declare one or provide an initializer.
+src/services/learningSystem.ts(115,11): error TS2393: Duplicate function implementation.
+src/services/learningSystem.ts(592,11): error TS2393: Duplicate function implementation.
+src/services/openRouterService.ts(123,9): error TS2561: Object literal may only specify known properties, but 'max_tokens' does not exist in type 'Partial<OpenRouterConfig>'. Did you mean to write 'maxTokens'?
+src/services/openRouterService.ts(157,9): error TS2561: Object literal may only specify known properties, but 'max_tokens' does not exist in type 'Partial<OpenRouterConfig>'. Did you mean to write 'maxTokens'?
+src/services/openRouterService.ts(192,9): error TS2561: Object literal may only specify known properties, but 'max_tokens' does not exist in type 'Partial<OpenRouterConfig>'. Did you mean to write 'maxTokens'?
+src/services/openRouterService.ts(235,29): error TS2551: Property 'max_tokens' does not exist on type 'Partial<OpenRouterConfig>'. Did you mean 'maxTokens'?
+src/services/serviceContainer.ts(64,15): error TS2339: Property 'default' does not exist on type 'typeof import("/project/workspace/d64483912-cmd/babyagi-autonomous-agent-pwa/src/types/babyagi")'.
+src/services/serviceContainer.ts(75,15): error TS2339: Property 'default' does not exist on type 'typeof import("/project/workspace/d64483912-cmd/babyagi-autonomous-agent-pwa/src/types/babyagi")'.
+src/services/serviceFactory.ts(1,10): error TS2305: Module '"./serviceInterfaces"' has no exported member 'ServiceConfig'.
+src/services/serviceInterfaces.ts(292,53): error TS2315: Type 'ServiceResponse' is not generic.
+src/services/simulationManager.ts(861,11): error TS2367: This comparison appears to be unintentional because the types '"strategy" | "timing" | "dependencies" | "priority"' and '"complexity"' have no overlap.
+src/services/taskExecutionEngine.ts(537,23): error TS2552: Cannot find name 'tasks'. Did you mean 'task'?
+src/services/taskExecutionEngine.ts(679,16): error TS2304: Cannot find name 'title'.
+src/services/taskExecutionEngine.ts(679,46): error TS2304: Cannot find name 'title'.
+src/stores/hooks.ts(174,20): error TS2339: Property 'getMostCommonFailureReasons' does not exist on type 'ResultsStore'.
+src/stores/hooks.ts(175,15): error TS2339: Property 'getMostCommonFailureReasons' does not exist on type 'ResultsStore'.
+src/stores/hooks.ts(225,21): error TS2339: Property 'download' does not exist on type 'Navigator'.
+src/stores/hooks.ts(239,15): error TS2339: Property 'showInfo' does not exist on type 'SettingsStore'.
+src/stores/hooks.ts(241,37): error TS2339: Property 'showInfo' does not exist on type 'SettingsStore'.
+src/stores/hooks.ts(254,15): error TS2339: Property 'showSuccess' does not exist on type 'SettingsStore'.
+src/stores/hooks.ts(256,36): error TS2339: Property 'showSuccess' does not exist on type 'SettingsStore'.
+src/stores/hooks.ts(362,31): error TS2345: Argument of type 'Omit<Objective, "id" | "createdAt" | "subtasks">' is not assignable to parameter of type 'Omit<Objective, "id" | "createdAt">'.
+  Property 'subtasks' is missing in type 'Omit<Objective, "id" | "createdAt" | "subtasks">' but required in type 'Omit<Objective, "id" | "createdAt">'.
+src/stores/hooks.ts(427,31): error TS2345: Argument of type '{ title: string; description: string; complexity: number; status: "pending"; }' is not assignable to parameter of type 'Omit<Objective, "id" | "createdAt">'.
+  Property 'subtasks' is missing in type '{ title: string; description: string; complexity: number; status: "pending"; }' but required in type 'Omit<Objective, "id" | "createdAt">'.
+src/stores/hooks.ts(486,20): error TS2339: Property 'resetSettings' does not exist on type '{ activeObjectives: Objective[]; completedObjectives: Objective[]; objectiveProgress: (id: string) => number; objectivesStats: { total: number; active: number; completed: number; averageCompletionTime: number; }; ... 26 more ...; getAverageCompletionTime: () => number; }'.
+src/stores/hooks.ts(582,3): error TS2304: Cannot find name 'AppSettings'.
+src/stores/hooks.ts(583,3): error TS2304: Cannot find name 'SimulationStatistics'.
+src/stores/hooks.ts(584,3): error TS2304: Cannot find name 'AgentMemory'.
+src/stores/hooks.ts(585,3): error TS2304: Cannot find name 'LearningInsight'.
+src/stores/hooks.ts(590,3): error TS2305: Module '"./objectivesStore"' has no exported member 'useTasksStore'.
+src/stores/hooks.ts(591,3): error TS2305: Module '"./objectivesStore"' has no exported member 'useResultsStore'.
+src/stores/hooks.ts(592,3): error TS2305: Module '"./objectivesStore"' has no exported member 'useSettingsStore'.
+src/stores/hooks.ts(593,3): error TS2305: Module '"./objectivesStore"' has no exported member 'useUIStore'.
+src/stores/index.ts(79,5): error TS2554: Expected 1 arguments, but got 2.
+src/stores/index.ts(95,5): error TS2554: Expected 1 arguments, but got 2.
+src/stores/index.ts(97,27): error TS2339: Property 'getTaskById' does not exist on type 'ResultsStore'.
+src/stores/index.ts(120,5): error TS2554: Expected 1 arguments, but got 2.
+src/stores/index.ts(157,33): error TS2339: Property 'resetSettings' does not exist on type 'ObjectivesStore'.
+src/stores/index.ts(424,10): error TS2304: Cannot find name 'useAppStore'.
+src/stores/index.ts(428,17): error TS2304: Cannot find name 'useObjectives'.
+src/stores/index.ts(429,12): error TS2304: Cannot find name 'useTasks'.
+src/stores/index.ts(430,14): error TS2304: Cannot find name 'useResults'.
+src/stores/index.ts(431,15): error TS2304: Cannot find name 'useSettings'.
+src/stores/index.ts(432,9): error TS2304: Cannot find name 'useUI'.
+src/stores/index.ts(433,16): error TS2304: Cannot find name 'useDashboard'.
+src/stores/index.ts(434,16): error TS2304: Cannot find name 'useAnalytics'.
+src/stores/objectivesStore.ts(214,13): error TS2353: Object literal may only specify known properties, and 'results' does not exist in type 'Partial<Objective>'.
+src/stores/objectivesStore.ts(235,13): error TS2353: Object literal may only specify known properties, and 'results' does not exist in type 'Partial<Objective>'.
+src/stores/objectivesStore.ts(252,11): error TS2353: Object literal may only specify known properties, and 'results' does not exist in type 'Partial<Objective>'.
+src/stores/objectivesStore.ts(401,3): error TS2554: Expected 1 arguments, but got 2.
+src/stores/resultsStore.ts(798,3): error TS2554: Expected 1 arguments, but got 2.
+src/stores/settingsStore.ts(772,3): error TS2554: Expected 1 arguments, but got 2.
+src/stores/tasksStore.ts(727,44): error TS2367: This comparison appears to be unintentional because the types '"pending" | "in-progress" | "failed"' and '"completed"' have no overlap.
+src/stores/tasksStore.ts(820,3): error TS2554: Expected 1 arguments, but got 2.
+src/stores/uiStore.ts(1066,27): error TS2339: Property 'innerWidth' does not exist on type 'EventTarget'.
+src/stores/uiStore.ts(1067,28): error TS2339: Property 'innerHeight' does not exist on type 'EventTarget'.
+src/sw.ts(9,10): error TS2305: Module '"workbox-background-sync"' has no exported member 'BackgroundSyncQueue'.
+src/types/enhancedBabyagi.ts(325,18): error TS2430: Interface 'AdvancedTaskExecution' incorrectly extends interface 'TaskExecution'.
+  Types of property 'logs' are incompatible.
+    Type 'DetailedLog[]' is not assignable to type 'ExecutionLog[]'.
+      Type 'DetailedLog' is missing the following properties from type 'ExecutionLog': timestamp, level, message
+src/types/enhancedBabyagi.ts(371,38): error TS2304: Cannot find name 'ExecutionLog'.
+src/types/enhancedBabyagi.ts(515,18): error TS2304: Cannot find name 'BabyAGIEngine'.
+src/types/enhancedBabyagi.ts(516,22): error TS2304: Cannot find name 'EnhancedOpenRouterService'.
+src/types/enhancedBabyagi.ts(517,24): error TS2304: Cannot find name 'TaskExecutionEngine'.
+src/types/enhancedBabyagi.ts(518,19): error TS2304: Cannot find name 'LearningSystem'.
+src/types/enhancedBabyagi.ts(519,22): error TS2304: Cannot find name 'SimulationManager'.
+src/types/enhancedBabyagi.ts(618,81): error TS2677: A type predicate's type must be assignable to its parameter's type.
+  Type 'AdvancedTaskExecution' is not assignable to type 'TaskExecution'.
+    Types of property 'logs' are incompatible.
+      Type 'DetailedLog[]' is not assignable to type 'ExecutionLog[]'.
+        Type 'DetailedLog' is missing the following properties from type 'ExecutionLog': timestamp, level, message
+src/types/enhancedBabyagi.ts(624,3): error TS1205: Re-exporting a type when 'isolatedModules' is enabled requires using 'export type'.
+src/types/enhancedBabyagi.ts(625,3): error TS1205: Re-exporting a type when 'isolatedModules' is enabled requires using 'export type'.
+src/types/enhancedBabyagi.ts(626,3): error TS1205: Re-exporting a type when 'isolatedModules' is enabled requires using 'export type'.
+src/types/enhancedBabyagi.ts(627,3): error TS1205: Re-exporting a type when 'isolatedModules' is enabled requires using 'export type'.
+src/types/enhancedBabyagi.ts(628,3): error TS1205: Re-exporting a type when 'isolatedModules' is enabled requires using 'export type'.
+src/types/enhancedBabyagi.ts(629,3): error TS1205: Re-exporting a type when 'isolatedModules' is enabled requires using 'export type'.
+src/types/enhancedBabyagi.ts(630,3): error TS1205: Re-exporting a type when 'isolatedModules' is enabled requires using 'export type'.
+src/types/enhancedBabyagi.ts(631,3): error TS1205: Re-exporting a type when 'isolatedModules' is enabled requires using 'export type'.
+src/types/enhancedBabyagi.ts(632,3): error TS1205: Re-exporting a type when 'isolatedModules' is enabled requires using 'export type'.
+src/types/enhancedBabyagi.ts(633,3): error TS1205: Re-exporting a type when 'isolatedModules' is enabled requires using 'export type'.
+src/types/enhancedBabyagi.ts(634,3): error TS1205: Re-exporting a type when 'isolatedModules' is enabled requires using 'export type'.
+src/types/enhancedBabyagi.ts(635,3): error TS1205: Re-exporting a type when 'isolatedModules' is enabled requires using 'export type'.
+src/types/enhancedBabyagi.ts(639,31): error TS2307: Cannot find module './babyagiEngine' or its corresponding type declarations.
+src/types/enhancedBabyagi.ts(640,43): error TS2307: Cannot find module './openRouterService' or its corresponding type declarations.
+src/types/enhancedBabyagi.ts(641,37): error TS2307: Cannot find module './taskExecutionEngine' or its corresponding type declarations.
+src/types/enhancedBabyagi.ts(642,32): error TS2307: Cannot find module './learningSystem' or its corresponding type declarations.
+src/types/enhancedBabyagi.ts(643,35): error TS2307: Cannot find module './simulationManager' or its corresponding type declarations.

@@ -724,7 +724,7 @@ export const useTasksStore = create<TasksStore>()(
           if (task.status === 'completed' || !task.estimatedDuration) return false;
           
           const estimatedEndTime = new Date(task.createdAt.getTime() + task.estimatedDuration * 60 * 1000);
-          return now > estimatedEndTime && task.status !== 'completed';
+          return now > estimatedEndTime;
         });
       },
 
@@ -816,6 +816,5 @@ export const useTasksStore = create<TasksStore>()(
         selectedTaskId: state.selectedTaskId
       })
     }
-  ),
-  subscribeWithSelector
+  )
 );

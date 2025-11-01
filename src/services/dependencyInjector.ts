@@ -32,6 +32,8 @@ export interface InjectionTarget {
 
 export class DependencyInjector {
   private container: ServiceContainer;
+  public getContainer(): ServiceContainer { return this.container; }
+
   private config: DependencyInjectionConfig;
   private injectionCache: Map<string, any> = new Map();
   private circularDependencyStack: string[] = [];
@@ -601,7 +603,7 @@ export const InjectorUtils = {
    * Auto-inject dependencies to class instance
    */
   autoInject: async (instance: any, container?: ServiceContainer): Promise<any> => {
-    const injContainer = container || getGlobalInjector()?.container;
+    const injContainer = container || getGlobalInjector()?.getContainer();
     if (!injContainer) {
       throw new Error('No container available for injection');
     }
@@ -613,14 +615,14 @@ export const InjectorUtils = {
   /**
    * Create factory function with automatic injection
    */
-  createInjectableFactory: <T extends Function>(
-    factory: T,
+  createInjectableFactory: (
+    factory: Function,
     container?: ServiceContainer
-  ): T => {
+  ): any => {
     return ((...args: any[]) => {
       const instance = factory.apply(null, args);
-      return InjectorUtils.autoInject(instance, container);
-    }) as T;
+      return InjectorUtils.autoInject(instance, container) as any;
+    }) as any;
   },
 
   /**

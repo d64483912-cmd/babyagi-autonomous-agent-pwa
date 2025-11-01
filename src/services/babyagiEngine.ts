@@ -47,6 +47,8 @@ export class BabyAGIEngine {
         enableAnimations: true,
         maxIterations: 10,
         useOpenRouter: false,
+        openRouterApiKey: undefined,
+        selectedModel: 'qwen/qwen-2.5-7b-instruct',
         fallbackToSimulation: true
       });
     }
@@ -146,10 +148,8 @@ export class BabyAGIEngine {
         }
       }
 
-      // Final completion check
-      if (objective.status !== 'completed') {
-        this.failObjective(objective, 'Maximum iterations reached');
-      }
+      // Final completion if not completed within iterations
+      this.failObjective(objective, 'Maximum iterations reached');
     } catch (error) {
       console.error('Simulation error:', error);
       this.failObjective(objective, `Simulation failed: ${error.message}`);

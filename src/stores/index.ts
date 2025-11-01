@@ -74,9 +74,9 @@ export const initializeStores = () => {
   const resultsStore = useResultsStore.getState();
   
   // Subscribe to objective changes and update related stores
-  useObjectivesStore.subscribe(
-    (state) => state.objectives,
-    (objectives) => {
+  (useObjectivesStore as any).subscribe(
+    (state: any) => state.objectives,
+    (objectives: any) => {
       // Update tasks when objectives change
       objectives.forEach(objective => {
         objective.subtasks.forEach(task => {
@@ -90,11 +90,12 @@ export const initializeStores = () => {
   );
   
   // Subscribe to task completion and add to results
-  useTasksStore.subscribe(
-    (state) => state.completedTasks,
-    (completedTasks) => {
+  (useTasksStore as any).subscribe(
+    (state: any) => state.completedTasks,
+    (completedTasks: any[]) => {
       completedTasks.slice(0, 5).forEach(task => { // Process only recent completions
-        if (!resultsStore.getTaskById?.(task.id)) { // Check if already added to results
+        const exists = resultsStore.executionResults.some(r => r.taskId === task.id);
+        if (!exists) {
           resultsStore.addExecutionResult({
             taskId: task.id,
             objectiveId: task.objectiveId,
@@ -115,9 +116,9 @@ export const initializeStores = () => {
   );
   
   // Subscribe to settings changes and apply them
-  useSettingsStore.subscribe(
-    (state) => state.theme,
-    (theme) => {
+  (useSettingsStore as any).subscribe(
+    (state: any) => state.theme,
+    (theme: any) => {
       // Apply theme changes to document
       const root = document.documentElement;
       if (theme === 'dark') {
@@ -137,9 +138,9 @@ export const initializeStores = () => {
   );
   
   // Subscribe to UI state changes for responsive behavior
-  useUIStore.subscribe(
-    (state) => state.layoutMode,
-    (layoutMode) => {
+  (useUIStore as any).subscribe(
+    (state: any) => state.layoutMode,
+    (layoutMode: any) => {
       // Handle layout mode changes
       const root = document.documentElement;
       root.classList.remove('mobile', 'tablet', 'desktop');
@@ -154,7 +155,7 @@ export const initializeStores = () => {
  * Reset all stores to their initial state
  */
 export const resetAllStores = () => {
-  useObjectivesStore.getState().resetSettings?.();
+  (useObjectivesStore.getState() as any).resetSettings?.();
   useTasksStore.getState().clearQueue();
   useResultsStore.getState().clearExecutionHistory();
   useUIStore.getState().resetUIState();
@@ -411,6 +412,8 @@ if (typeof window !== 'undefined') {
     console.log('🔧 BabyAGI debugging tools available via window.babyagiDebug');
   }
 }
+
+import { useAppStore, useObjectives, useTasks, useResults, useSettings, useUI, useDashboard, useAnalytics } from './hooks';
 
 export default {
   // Stores

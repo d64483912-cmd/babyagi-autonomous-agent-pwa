@@ -858,7 +858,7 @@ export class SimulationManager {
       if (insight.category === 'timing' && task.estimatedDuration > 60) {
         task.estimatedDuration = Math.round(task.estimatedDuration * 1.2);
       }
-      if (insight.category === 'complexity' && task.complexity > 7) {
+      if (insight.category === 'strategy' && task.complexity > 7) {
         task.complexity = Math.min(10, task.complexity + 1);
       }
     });

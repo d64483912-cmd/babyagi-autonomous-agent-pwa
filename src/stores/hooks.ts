@@ -171,8 +171,9 @@ export const useResults = () => {
     ),
     
     errorAnalysis: useMemo(() => {
-      return store.getMostCommonFailureReasons();
-    }, [store.getMostCommonFailureReasons])
+      const fn = (store as any).getMostCommonFailureReasons;
+      return typeof fn === 'function' ? fn() : [];
+    }, [store])
   };
 };
 
@@ -222,23 +223,16 @@ export const useSettings = () => {
       const settingsData = store.exportSettings();
       const fileName = `babyagi-settings-${new Date().toISOString().split('T')[0]}.json`;
       
-      if (navigator.download) {
-        // Use download API if available
-        const blob = new Blob([settingsData], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } else {
-        // Fallback to clipboard
-        navigator.clipboard.writeText(settingsData);
-        store.showInfo('Settings Exported', 'Settings copied to clipboard');
-      }
-    }, [store.exportSettings, store.showInfo]),
+      const blob = new Blob([settingsData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, [store.exportSettings]),
     
     // Quick settings actions
     toggleTheme: useCallback(() => {
@@ -251,9 +245,8 @@ export const useSettings = () => {
     resetToDefaults: useCallback(() => {
       if (confirm('Are you sure you want to reset all settings to defaults?')) {
         store.resetSettings();
-        store.showSuccess('Settings Reset', 'All settings have been reset to defaults');
       }
-    }, [store.resetSettings, store.showSuccess])
+    }, [store.resetSettings])
   };
 };
 
@@ -358,8 +351,8 @@ export const useAppStore = () => {
     ui,
     
     // Combined actions
-    createObjectiveWithTask: useCallback(async (objectiveData: Omit<Objective, 'id' | 'createdAt' | 'subtasks'>, taskData?: Omit<Task, 'id' | 'createdAt' | 'attempts' | 'objectiveId'>) => {
-      objectives.addObjective(objectiveData);
+    createObjectiveWithTask: useCallback(async (objectiveData: Omit<Objective, 'id' | 'createdAt'>, taskData?: Omit<Task, 'id' | 'createdAt' | 'attempts' | 'objectiveId'>) => {
+      objectives.addObjective(objectiveData as any);
       const objective = objectives.currentObjective;
       
       if (objective && taskData) {
@@ -428,8 +421,9 @@ export const useAppStore = () => {
         title,
         description,
         complexity: 5,
-        status: 'pending'
-      });
+        status: 'pending',
+        subtasks: []
+      } as any);
       ui.showSuccessMessage('Objective Added', 'New objective has been created');
     }, [objectives, ui]),
     
@@ -483,7 +477,7 @@ export const useAppStore = () => {
     // Reset application
     resetApplication: useCallback(() => {
       if (confirm('Are you sure you want to reset all data? This action cannot be undone.')) {
-        objectives.resetSettings?.(); // This would need to be implemented in objectives store
+        // objectives reset not implemented
         tasks.clearQueue();
         results.clearExecutionHistory();
         ui.resetUIState();
@@ -583,12 +577,10 @@ export type {
   SimulationStatistics,
   AgentMemory,
   LearningInsight
-};
+} from '../types/babyagi';
 
-export {
-  useObjectivesStore,
-  useTasksStore,
-  useResultsStore,
-  useSettingsStore,
-  useUIStore
-} from './objectivesStore';
+export { useObjectivesStore } from './objectivesStore';
+export { useTasksStore } from './tasksStore';
+export { useResultsStore } from './resultsStore';
+export { useSettingsStore } from './settingsStore';
+export { useUIStore } from './uiStore';

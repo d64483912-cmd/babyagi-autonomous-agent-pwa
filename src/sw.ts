@@ -6,7 +6,7 @@ import { NetworkFirst, CacheFirst, StaleWhileRevalidate } from 'workbox-strategi
 import { ExpirationPlugin } from 'workbox-expiration'
 import { CacheableResponsePlugin } from 'workbox-cacheable-response'
 import { BackgroundSyncPlugin } from 'workbox-background-sync'
-import { BackgroundSyncQueue } from 'workbox-background-sync'
+import { Queue } from 'workbox-background-sync'
 
 declare const self: ServiceWorkerGlobalScope
 
@@ -17,7 +17,7 @@ cleanupOutdatedCaches()
 precacheAndRoute(self.__WB_MANIFEST as PrecacheEntry[])
 
 // Background sync for task results
-const taskResultsQueue = new BackgroundSyncQueue('task-results-queue', {
+const taskResultsQueue = new Queue('task-results-queue', {
   maxRetentionTime: 24 * 60 // 24 hours
 })
 
@@ -155,7 +155,7 @@ self.addEventListener('sync', (event) => {
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'TASK_EXECUTION_OFFLINE') {
     // Store task execution request for later replay
-    taskResultsQueue.pushRequest({
+    (taskResultsQueue as any).pushRequest({
       url: event.data.url,
       method: event.data.method,
       body: event.data.body,

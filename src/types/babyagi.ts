@@ -6,6 +6,7 @@ export interface Objective {
   status: 'pending' | 'in-progress' | 'completed' | 'failed';
   createdAt: Date;
   completedAt?: Date;
+  results?: string;
   subtasks: Task[];
 }
 
@@ -61,6 +62,9 @@ export interface ExecutionLog {
   level: 'info' | 'success' | 'warning' | 'error';
   message: string;
   details?: any;
+  category?: string;
+  taskId?: string;
+  objectiveId?: string;
 }
 
 export interface SimulationState {
@@ -180,16 +184,6 @@ export interface NotificationAction {
   label: string;
   action: () => void;
   variant?: 'primary' | 'secondary';
-}
-
-export interface ExecutionLog {
-  timestamp: Date;
-  level: 'info' | 'success' | 'warning' | 'error';
-  message: string;
-  details?: any;
-  category?: string;
-  taskId?: string;
-  objectiveId?: string;
 }
 
 // =============================================================================

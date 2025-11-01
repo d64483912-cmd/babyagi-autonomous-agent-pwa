@@ -589,8 +589,7 @@ export class LearningSystem {
     return `${taskType}_${complexityRange}_${depRange}`;
   }
 
-  private calculateExecutionMetrics(task: Task): ExecutionMetrics {
-    // Implementation details...
+  private calculateExecutionMetricsFallback(task: Task): ExecutionMetrics {
     return {
       durationEfficiency: 1,
       progressEfficiency: task.progress / 100,

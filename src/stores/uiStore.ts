@@ -1061,10 +1061,10 @@ export const useUIStore = create<UIStore>()(
 
 // Subscribe to window events
 if (typeof window !== 'undefined') {
-  window.addEventListener('resize', (event) => {
+  window.addEventListener('resize', () => {
     useUIStore.getState().handleResize({
-      width: event.target.innerWidth,
-      height: event.target.innerHeight
+      width: window.innerWidth,
+      height: window.innerHeight
     });
   });
 

@@ -158,13 +158,13 @@ export interface ServiceRequest {
   metadata?: { [key: string]: any };
 }
 
-export interface ServiceResponse {
+export interface ServiceResponse<T = any> {
   id: string;
   requestId: string;
   success: boolean;
   timestamp: Date;
   duration: number;
-  data?: any;
+  data?: T;
   error?: ServiceError;
   metadata?: { [key: string]: any };
 }

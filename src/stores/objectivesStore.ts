@@ -397,6 +397,5 @@ export const useObjectivesStore = create<ObjectivesStore>()(
         selectedObjectiveId: state.selectedObjectiveId
       })
     }
-  ),
-  subscribeWithSelector
+  )
 );

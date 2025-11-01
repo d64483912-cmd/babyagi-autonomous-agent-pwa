@@ -61,8 +61,18 @@ export class ServiceContainer {
 
     this.register('taskExecutionEngine', async () => {
       const { TaskExecutionEngine } = await import('./taskExecutionEngine');
-      const { default: appSettings } = await import('../types/babyagi');
-      return new TaskExecutionEngine(appSettings);
+      const defaultSettings = {
+        simulationSpeed: 'normal',
+        autoExecute: true,
+        showDetailedLogs: true,
+        enableAnimations: true,
+        maxIterations: 10,
+        useOpenRouter: false,
+        openRouterApiKey: undefined,
+        selectedModel: 'qwen/qwen-2.5-7b-instruct',
+        fallbackToSimulation: true
+      };
+      return new TaskExecutionEngine(defaultSettings as any);
     });
 
     this.register('learningSystem', async () => {
@@ -72,8 +82,18 @@ export class ServiceContainer {
 
     this.register('simulationManager', async () => {
       const { SimulationManager } = await import('./simulationManager');
-      const { default: appSettings } = await import('../types/babyagi');
-      return new SimulationManager(appSettings);
+      const defaultSettings = {
+        simulationSpeed: 'normal',
+        autoExecute: true,
+        showDetailedLogs: true,
+        enableAnimations: true,
+        maxIterations: 10,
+        useOpenRouter: false,
+        openRouterApiKey: undefined,
+        selectedModel: 'qwen/qwen-2.5-7b-instruct',
+        fallbackToSimulation: true
+      };
+      return new SimulationManager(defaultSettings as any);
     });
   }
 

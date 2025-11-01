@@ -794,6 +794,5 @@ export const useResultsStore = create<ResultsStore>()(
         analyticsTimeframe: state.analyticsTimeframe
       })
     }
-  ),
-  subscribeWithSelector
+  )
 );

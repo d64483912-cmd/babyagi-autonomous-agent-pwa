@@ -28,17 +28,6 @@ interface NotificationSettings {
   performanceAlerts: boolean
 }
 
-interface PWAServiceWorker {
-  state: ServiceWorkerState
-  update(): Promise<void>
-  remove(): Promise<void>
-}
-
-interface PWAServiceWorkerRegistration extends ServiceWorkerRegistration {
-  active?: PWAServiceWorker | null
-  installing?: PWAServiceWorker | null
-  waiting?: PWAServiceWorker | null
-}
 
 export const PWAStatus: React.FC = () => {
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default')

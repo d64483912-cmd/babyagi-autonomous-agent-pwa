@@ -7,20 +7,22 @@
  */
 
 // Core Engines
-export { BabyAGIEngine } from './babyagiEngine';
-export { EnhancedOpenRouterService, DEFAULT_ENHANCED_CONFIG, RECOMMENDED_MODELS } from './openRouterService';
-export { TaskExecutionEngine } from './taskExecutionEngine';
-export { LearningSystem } from './learningSystem';
-export { SimulationManager } from './simulationManager';
+import { BabyAGIEngine } from './babyagiEngine';
+import { EnhancedOpenRouterService, DEFAULT_ENHANCED_CONFIG, RECOMMENDED_MODELS } from './openRouterService';
+import { TaskExecutionEngine } from './taskExecutionEngine';
+import { LearningSystem } from './learningSystem';
+import { SimulationManager } from './simulationManager';
+export { BabyAGIEngine, EnhancedOpenRouterService, DEFAULT_ENHANCED_CONFIG, RECOMMENDED_MODELS, TaskExecutionEngine, LearningSystem, SimulationManager };
 
 // Service factory and management
-export { ServiceFactory } from './serviceFactory';
-export { ServiceContainer } from './serviceContainer';
-export { DependencyInjector } from './dependencyInjector';
+import { ServiceFactory } from './serviceFactory';
+import { ServiceContainer } from './serviceContainer';
+import { DependencyInjector } from './dependencyInjector';
+export { ServiceFactory, ServiceContainer, DependencyInjector };
 
 // Service interfaces and types
-export { 
-  ServiceConfig, 
+export type { 
+  ServiceConfiguration as ServiceConfig,
   ServiceHealth, 
   ServiceMetrics,
   ServiceEvent 
@@ -289,7 +291,7 @@ export const ServiceUtils = {
    * Create performance monitor
    */
   createPerformanceMonitor(services: any[]) {
-    const startTime = Date.now();
+    let startTime = Date.now();
     
     return {
       getMetrics: () => ({
@@ -316,14 +318,14 @@ export const ServiceUtils = {
         return {
           service: serviceName,
           error: error.message,
-          stack: error.stack,
+          stack: (error as any).stack,
           context,
           timestamp: new Date(),
-          recoverable: this.isRecoverableError(error)
+          recoverable: ServiceUtils.isRecoverableError(error)
         };
       },
       
-      isRecoverable: (error: Error) => this.isRecoverableError(error)
+      isRecoverable: (error: Error) => ServiceUtils.isRecoverableError(error)
     };
   },
 
