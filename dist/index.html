@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="BabyAGI - An interactive simulator demonstrating autonomous AI agent principles with real AI integration, task execution, and multi-agent coordination" />
+  <meta name="keywords" content="AI, Agent, BabyAGI, Artificial Intelligence, Task Execution, Automation, Simulator" />
+  <meta name="author" content="BabyAGI Team" />
+  <meta name="robots" content="index, follow" />
+  <meta name="language" content="English" />
+  <meta name="revisit-after" content="1 day" />
+  
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#3b82f6" />
+  <meta name="background-color" content="#0f172a" />
+  <meta name="display" content="standalone" />
+  <meta name="orientation" content="portrait-primary" />
+  <meta name="start_url" content="/" />
+  <meta name="scope" content="/" />
+  <meta name="categories" content="productivity,developer,simulation,ai" />
+  <meta name="application-name" content="BabyAGI" />
+  <meta name="msapplication-TileColor" content="#3b82f6" />
+  <meta name="msapplication-config" content="/browserconfig.xml" />
+  
+  <!-- iOS PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="BabyAGI" />
+  <meta name="apple-touch-fullscreen" content="yes" />
+  <meta name="apple-touch-orientation" content="portrait" />
+  
+  <!-- Android PWA Meta Tags -->
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-status-bar-style" content="black" />
+  <meta name="mobile-web-app-orientation" content="portrait" />
+  <meta name="mobile-web-app-display" content="standalone" />
+  
+  <!-- Microsoft Windows PWA Meta Tags -->
+  <meta name="msapplication-navbutton-color" content="#3b82f6" />
+  <meta name="msapplication-TileImage" content="/pwa-144x144.png" />
+  <meta name="msapplication-square70x70logo" content="/pwa-144x144.png" />
+  <meta name="msapplication-square150x150logo" content="/pwa-144x144.png" />
+  <meta name="msapplication-wide310x150logo" content="/pwa-192x192.png" />
+  <meta name="msapplication-square310x310logo" content="/pwa-192x192.png" />
+  
+  <!-- Icons -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/pwa-96x96.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/pwa-96x96.png" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="mask-icon" href="/masked-icon.svg" color="#3b82f6" />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://babyagi.example.com/" />
+  <meta property="og:title" content="BabyAGI - Autonomous AI Agent" />
+  <meta property="og:description" content="An interactive simulator demonstrating autonomous AI agent principles with real AI integration" />
+  <meta property="og:image" content="/pwa-512x512.png" />
+  <meta property="og:site_name" content="BabyAGI" />
+  <meta property="og:locale" content="en_US" />
+  
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://babyagi.example.com/" />
+  <meta name="twitter:title" content="BabyAGI - Autonomous AI Agent" />
+  <meta name="twitter:description" content="An interactive simulator demonstrating autonomous AI agent principles with real AI integration" />
+  <meta name="twitter:image" content="/pwa-512x512.png" />
+  <meta name="twitter:site" content="@babyagi" />
+  <meta name="twitter:creator" content="@babyagi" />
+  
+  <!-- Performance & Security -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; media-src 'self' https:;" />
+  
+  <!-- Preload Critical Resources -->
+  <link rel="preload" href="/pwa-192x192.png" as="image" />
+  <link rel="preload" href="/pwa-512x512.png" as="image" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  
+  <!-- DNS Prefetch -->
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+  
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="/manifest.webmanifest" />
+  
+  <!-- Microsoft Tiles -->
+  <meta name="msapplication-TileColor" content="#3b82f6" />
+  <meta name="msapplication-TileImage" content="/pwa-144x144.png" />
+  
+  <!-- Splash Screen for iOS -->
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/pwa-512x512.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/pwa-512x512.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/pwa-512x512.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/pwa-512x512.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/pwa-256x256.png">
+  <link rel="apple-touch-startup-image" media="screen and (device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/pwa-256x256.png">
+  
+  <title>BabyAGI - Autonomous AI Agent</title>
+  <script type="module" crossorigin src="/assets/index-DfDS9fzA.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-BiR6mCpL.css">
+</head>
+
+<body>
+  <div id="root"></div>
+  
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((registration) => {
+            console.log('SW registered: ', registration);
+          })
+          .catch((registrationError) => {
+            console.log('SW registration failed: ', registrationError);
+          });
+      });
+    }
+  </script>
+  
+</body>
+
+</html>
